@@ -5,3 +5,7 @@ export const PERMISSIONS_KEY = 'permissions';
 
 export const Permissions = (...permissions: PermissionType[]) =>
   SetMetadata(PERMISSIONS_KEY, permissions);
+
+
+export const PUBLIC_PERMISSIONS_KEY = 'skipPermissions';
+export const PublicPermissions = () => SetMetadata(PUBLIC_PERMISSIONS_KEY, true);

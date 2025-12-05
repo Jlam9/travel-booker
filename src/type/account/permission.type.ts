@@ -8,6 +8,7 @@ export enum PermissionType {
   DESTINATION_VIEW = 'destination.view',
   DESTINATION_CREATE = 'destination.create',
   DESTINATION_EDIT = 'destination.edit',
+  DESTINATION_DELETE = 'destination.delete',
 
   BOOKING_VIEW = 'booking.view',
   BOOKING_CREATE = 'booking.create',

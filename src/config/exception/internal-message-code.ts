@@ -1,4 +1,5 @@
 export const MessageCodes = {
+  // Auth & Users
   UnauthorizedError: {
     message: 'Unauthorized',
     code: 'UNAUTHORIZED_ERROR',
@@ -47,6 +48,32 @@ export const MessageCodes = {
     status: 400
   },
 
+  // Destinations
+  DestinationNotFound: {
+    message: 'Destination {id} was not found',
+    code: 'DESTINATION_NOT_FOUND',
+    status: 404
+  },
+
+  DestinationAlreadyExists: {
+    message: 'A destination with these values already exists: {details}',
+    code: 'DESTINATION_ALREADY_EXISTS',
+    status: 400
+  },
+
+  DestinationHasActiveBookings: {
+    message: 'Destination {id} cannot be deleted because it has active bookings',
+    code: 'DESTINATION_HAS_ACTIVE_BOOKINGS',
+    status: 400
+  },
+
+  DestinationDeleteNotAllowed: {
+    message: 'Destination {id} cannot be deleted',
+    code: 'DESTINATION_DELETE_NOT_ALLOWED',
+    status: 400
+  },
+
+  // Generic
   UnexpectedError: {
     message: 'Unexpected error from server',
     code: 'UNEXPECTED_ERROR',
