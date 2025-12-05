@@ -10,69 +10,73 @@ export async function seedRBAC(dataSource: DataSource) {
 
   const logger = new Logger('RBACSeed');
 
-  logger.log('⏳ Iniciando RBAC seed...');
+  logger.log('Iniciando proceso de seed para RBAC...');
 
   const roleRepo = dataSource.getRepository(Role);
   const permissionRepo = dataSource.getRepository(Permission);
   const rolePermissionRepo = dataSource.getRepository(RolePermission);
 
   try {
-    // --------------------------
-    // 1. Crear permisos
-    // --------------------------
-    logger.log('➡️  Creando permisos...');
+    // -------------------------------------------------------------------
+    // Crear permisos
+    // -------------------------------------------------------------------
+    logger.log('Creando permisos...');
 
     const permissionsToSeed = Object.values(PermissionType).map(p => ({
       name: p,
-      description: `${p} permission`
+      description: `Permiso: ${p}`
     }));
 
     const permissions = await permissionRepo.save(permissionsToSeed);
 
-    logger.log(`✔ Permisos creados: ${permissions.length}`);
+    logger.log(`Permisos creados: ${permissions.length}`);
 
-    // Utilidad para encontrar permisos por nombre
-    const perm = (name: PermissionType) => permissions.find(p => p.name === name);
+    const perm = (name: PermissionType) =>
+      permissions.find(p => p.name === name);
 
-    // --------------------------
-    // 2. Crear roles
-    // --------------------------
-    logger.log('➡️  Creando roles...');
+    // -------------------------------------------------------------------
+    // Crear roles
+    // -------------------------------------------------------------------
+    logger.log('Creando roles...');
 
     const roles = await roleRepo.save([
-      { name: 'ADMIN', description: 'Full access' },
-      { name: 'AGENT', description: 'Booking manager' },
-      { name: 'VIEWER', description: 'Read-only user' }
+      { name: 'ADMIN', description: 'Acceso total al sistema' },
+      { name: 'AGENT', description: 'Gestión de reservas y destinos' },
+      { name: 'VIEWER', description: 'Solo lectura' }
     ]);
 
     const ADMIN = roles.find(r => r.name === 'ADMIN');
     const AGENT = roles.find(r => r.name === 'AGENT');
     const VIEWER = roles.find(r => r.name === 'VIEWER');
 
-    logger.log(`✔ Roles creados: ${roles.length}`);
+    logger.log(`Roles creados: ${roles.length}`);
 
-    // --------------------------
-    // 3. Asignar permisos por rol
-    // --------------------------
-    logger.log('➡️  Asignando permisos a roles...');
+    // -------------------------------------------------------------------
+    // Asignar permisos a los roles
+    // -------------------------------------------------------------------
+    logger.log('Asignando permisos a los roles...');
 
-    // ADMIN: todos los permisos
+    //
+    // ADMIN → TODOS LOS PERMISOS
+    //
     const adminPermissions = permissions.map(p => ({
       role: ADMIN,
       permission: p
     }));
+    logger.log(`  • ADMIN recibirá ${adminPermissions.length} permisos`);
 
-    logger.log(`  • ADMIN tendrá ${adminPermissions.length} permisos`);
-
-    // AGENT
-    const agentPermList = [
+    //
+    // AGENT → CRUD de bookings + creación/edición de destinos
+    //
+    const agentPermList: PermissionType[] = [
       PermissionType.BOOKING_VIEW,
       PermissionType.BOOKING_CREATE,
       PermissionType.BOOKING_EDIT,
       PermissionType.BOOKING_CANCEL,
+
       PermissionType.DESTINATION_VIEW,
       PermissionType.DESTINATION_CREATE,
-      PermissionType.DESTINATION_EDIT
+      PermissionType.DESTINATION_EDIT,
     ];
 
     const agentPermissions = agentPermList.map(p => ({
@@ -80,12 +84,14 @@ export async function seedRBAC(dataSource: DataSource) {
       permission: perm(p)
     }));
 
-    logger.log(`  • AGENT tendrá ${agentPermissions.length} permisos`);
+    logger.log(`  • AGENT recibirá ${agentPermissions.length} permisos`);
 
-    // VIEWER
-    const viewerPermList = [
+    //
+    // VIEWER → solo lectura (bookings y destinos)
+    //
+    const viewerPermList: PermissionType[] = [
       PermissionType.BOOKING_VIEW,
-      PermissionType.DESTINATION_VIEW
+      PermissionType.DESTINATION_VIEW,
     ];
 
     const viewerPermissions = viewerPermList.map(p => ({
@@ -93,22 +99,22 @@ export async function seedRBAC(dataSource: DataSource) {
       permission: perm(p)
     }));
 
-    logger.log(`  • VIEWER tendrá ${viewerPermissions.length} permisos`);
+    logger.log(`  • VIEWER recibirá ${viewerPermissions.length} permisos`);
 
     // Guardar asignaciones
-    const totalRolePerms = [
+    const allRolePermissions = [
       ...adminPermissions,
       ...agentPermissions,
       ...viewerPermissions
     ];
 
-    await rolePermissionRepo.save(totalRolePerms);
+    await rolePermissionRepo.save(allRolePermissions);
 
-    logger.log(`✔ RolePermissions insertados: ${totalRolePerms.length}`);
+    logger.log(`Permisos asignados a roles: ${allRolePermissions.length}`);
+    logger.log('Seed RBAC completado exitosamente');
 
-    logger.log('🎉 RBAC seed completado exitosamente');
   } catch (error) {
-    logger.error('❌ Error ejecutando RBAC seed', error);
+    logger.error('Error durante el proceso de seed RBAC:', error);
     throw error;
   }
 }

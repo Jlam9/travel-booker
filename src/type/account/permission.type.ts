@@ -1,4 +1,5 @@
 export enum PermissionType {
+  USER_VIEW = 'user.view',
   USER_CREATE = 'user.create',
   USER_EDIT = 'user.edit',
   USER_DISABLE = 'user.disable',

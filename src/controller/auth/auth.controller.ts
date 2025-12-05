@@ -15,8 +15,13 @@ import { RegisterRequest } from 'src/dto/auth/register-request.dto';
 
 import { AuthService } from 'src/service/auth/auth.service';
 import { LocalAuthGuard } from 'src/service/auth/local-auth.guard';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { PermissionGuard } from 'src/guards/permission.guard';
+import { PermissionType } from 'src/type/account/permission.type';
+import { Permissions } from 'src/decorators/permission.decorator';
 
 @ApiTags('AuthController')
+@UseGuards(JwtAuthGuard, PermissionGuard)
 @UseFilters(new CustomErrorFilter())
 @Controller('/auth')
 export class AuthController {
@@ -34,14 +39,15 @@ export class AuthController {
 
     const tokenRequest: TokenRequest = {
       email: user.email,
-      password: ''
+      password: '' // no importa, ya fue validado por LocalAuthGuard
     };
 
-    return await this.authService.getToken(tokenRequest);
+    return await this.authService.login(tokenRequest);
   }
 
   @ApiOperation({ summary: 'Registrar nuevo usuario' })
   @ApiResponse({ status: 201, description: 'Usuario registrado correctamente' })
+  @Permissions(PermissionType.USER_CREATE, PermissionType.USER_ASSIGN_ROLE)
   @Post('/register')
   async register(@Body() registerRequest: RegisterRequest) {
     return await this.authService.register(registerRequest);

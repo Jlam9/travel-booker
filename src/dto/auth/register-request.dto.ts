@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsEmail, IsNotEmpty, MinLength, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsNotEmpty, MinLength, IsOptional, IsString, IsArray } from "class-validator";
 
 export class RegisterRequest {
 
@@ -16,9 +16,11 @@ export class RegisterRequest {
   password: string;
 
   @ApiPropertyOptional({
-    description: "Nombre del rol (ADMIN, AGENT, VIEWER). Si no se envía, se asigna VIEWER."
+    description: "Lista de roles del usuario. Ej: ['ADMIN', 'AGENT']. Si se omite, asigna VIEWER."
   })
   @IsOptional()
-  @IsString()
-  roleName?: string;
+  @IsArray()
+  @IsString({ each: true })
+  roleNames?: string[];
+
 }

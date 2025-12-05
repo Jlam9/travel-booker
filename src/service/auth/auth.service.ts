@@ -11,6 +11,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Role } from "src/model/account/role.entity";
 import { Repository } from "typeorm";
 import { UserRole } from "src/model/account/user-role.entity";
+import { CustomError } from "src/config/exception/custom.error";
+import { MessageCodes } from "src/config/exception/internal-message-code";
 
 @Injectable()
 export class AuthService {
@@ -31,13 +33,18 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<any> {
     const fixedEmail = email.toLowerCase().trim();
     const user = await this.userService.findByUsername(fixedEmail);
-    if (!user) return null;
+    if (!user) {
+      throw new CustomError(MessageCodes.InvalidCredentials);
+    }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!isMatch) return null;
+    if (!isMatch) {
+      throw new CustomError(MessageCodes.InvalidCredentials);
+    }
 
-    if (user.status === UserStatusType.Disabled) return null;
-    if (user.email !== fixedEmail) return null;
+    if (user.status === UserStatusType.Disabled) {
+      throw new CustomError(MessageCodes.UserDisabled);
+    }
 
     const { passwordHash, ...result } = user;
     return result;
@@ -46,37 +53,45 @@ export class AuthService {
   async register(data: RegisterRequest) {
     const email = data.email.toLowerCase().trim();
 
-    // Validamos si usuario ya existe
+    // 1. Validar si usuario existe
     const existing = await this.userService.findByUsername(email);
-    if (existing) {
-      throw new Error('El usuario ya existe');
-    }
+    if (existing) throw new Error('El usuario ya existe');
 
-    // Hashear la contraseña
+    // 2. Hashear contraseña
     const hashedPassword = await bcrypt.hash(data.password, 10);
     data.password = hashedPassword;
 
-    // Crear usuario
+    // 3. Crear usuario
     const newUser = await this.userService.createUser(data);
 
-    // Seleccionar rol: si se envía, usarlo; si no, VIEWER
-    const roleName = data.roleName?.toUpperCase().trim() || 'VIEWER';
+    // 4. Procesar roles
+    let roleNames = data.roleNames;
 
-    const role = await this.roleRepository.findOne({ where: { name: roleName } });
-
-    if (!role) {
-      throw new Error(`El rol ${roleName} no existe`);
+    // Si no se envían roles, asignar VIEWER
+    if (!roleNames || roleNames.length === 0) {
+      roleNames = ['VIEWER'];
     }
 
-    // Asignar el rol al usuario
-    const userRole = this.userRoleRepository.create({
-      user: newUser,
-      role: role
+    // Normalizar roles
+    roleNames = roleNames.map(r => r.toUpperCase().trim());
+
+    // Buscar roles válidos
+    const roles = await this.roleRepository.find({
+      where: roleNames.map(name => ({ name }))
     });
 
-    await this.userRoleRepository.save(userRole);
+    if (roles.length !== roleNames.length) {
+      throw new Error(`Uno o varios roles no existen: ${roleNames.join(', ')}`);
+    }
 
-    // Crear JWT
+    // 5. Asignar roles al usuario
+    const userRoles = roles.map(role =>
+      this.userRoleRepository.create({ user: newUser, role })
+    );
+
+    await this.userRoleRepository.save(userRoles);
+
+    // 6. Crear JWT
     const payload = { username: newUser.email };
 
     const accessToken = this.jwtService.sign(payload, { expiresIn: "8h" });
@@ -85,11 +100,14 @@ export class AuthService {
     return new TokenResponse(accessToken, refreshToken, this.getExpiration());
   }
 
-  async getToken(tokenRequest: TokenRequest) {
-    const user = await this.userService.findByUsername(
-      tokenRequest.email.toLowerCase().trim()
-    );
-    if (!user) return;
+
+  async login(tokenRequest: TokenRequest) {
+    const { email } = tokenRequest;
+    const user = await this.userService.findByUsername(email);
+
+    if (!user) {
+      throw new CustomError(MessageCodes.UserNotFound, { email });
+    }
 
     const payload = { username: user.email };
 
@@ -104,7 +122,9 @@ export class AuthService {
     const result: any = this.jwtService.verify(refreshToken);
 
     const user = await this.userService.findByUsername(result.username);
-    if (!user) return;
+    if (!user) {
+      throw new CustomError(MessageCodes.UserNotFound, { email: result.username });
+    }
 
     const payload = { username: result.username };
 
@@ -114,7 +134,7 @@ export class AuthService {
 
     return new TokenResponse(accessToken, refreshToken, this.getExpiration());
   }
-  
+
   // Expiración para swagger
   private getExpiration() {
     const expiresAt = new Date();
