@@ -71,7 +71,8 @@ export class DestinationService {
       qb.andWhere('d.isActive = :active', { active: isActive === 'true' });
     }
 
-    qb.skip(page * size).take(size);
+    if (size > 0)
+      qb.skip(page * size).take(size);
 
     const [destinations, total] = await qb.getManyAndCount();
 

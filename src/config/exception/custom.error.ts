@@ -1,26 +1,28 @@
 import { MessageCodes } from "./internal-message-code";
 import { MessageCode } from "./message-code";
 
-export class CustomError implements Error {
+export class CustomError extends Error {
 
   messageCode: MessageCode;
 
   constructor(messageCode?: MessageCode, params?: any) {
-    if (!messageCode) {
-      this.messageCode = MessageCodes.UnexpectedError;
-    } else {
-      this.messageCode = messageCode;
-    }
+
+    super();
+
+    this.name = "CustomError";
+
+    this.messageCode = messageCode || MessageCodes.UnexpectedError;
+
+    let finalMessage = this.messageCode.message;
 
     if (params) {
-      this.messageCode.message = this.messageCode.message.replace(/{(\w+)}/g, (_, key) => {
-        return params[key] || '';
-      });
+      finalMessage = finalMessage.replace(/{(\w+)}/g, (_, key) => params[key] || "");
+    }
+
+    this.message = finalMessage;
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, CustomError);
     }
   }
-
-  name: string;
-  message: string;
-  stack?: string | undefined;
-
 }

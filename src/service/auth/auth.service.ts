@@ -53,18 +53,18 @@ export class AuthService {
   async register(data: RegisterRequest) {
     const email = data.email.toLowerCase().trim();
 
-    // 1. Validar si usuario existe
+    // Validar si usuario existe
     const existing = await this.userService.findByUsername(email);
     if (existing) throw new Error('El usuario ya existe');
 
-    // 2. Hashear contraseña
+    // Hashear contraseña
     const hashedPassword = await bcrypt.hash(data.password, 10);
     data.password = hashedPassword;
 
-    // 3. Crear usuario
+    // Crear usuario
     const newUser = await this.userService.createUser(data);
 
-    // 4. Procesar roles
+    // Procesar roles
     let roleNames = data.roleNames;
 
     // Si no se envían roles, asignar VIEWER
@@ -84,14 +84,14 @@ export class AuthService {
       throw new Error(`Uno o varios roles no existen: ${roleNames.join(', ')}`);
     }
 
-    // 5. Asignar roles al usuario
+    // Asignar roles al usuario
     const userRoles = roles.map(role =>
       this.userRoleRepository.create({ user: newUser, role })
     );
 
     await this.userRoleRepository.save(userRoles);
 
-    // 6. Crear JWT
+    // Crear JWT
     const payload = { username: newUser.email };
 
     const accessToken = this.jwtService.sign(payload, { expiresIn: "8h" });

@@ -19,9 +19,9 @@ import { PermissionType } from 'src/type/account/permission.type';
 import { Permissions } from 'src/common/decorators/permission.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { PermissionGuard } from 'src/common/guards/permission.guard';
+import { Public } from 'src/common/decorators/auth-public.decorator';
 
 @ApiTags('AuthController')
-@UseGuards(JwtAuthGuard, PermissionGuard)
 @UseFilters(new CustomErrorFilter())
 @Controller('/auth')
 export class AuthController {
@@ -34,7 +34,7 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Token generado correctamente' })
   @UseGuards(LocalAuthGuard)
   @Post('/login')
-  async getToken(@Req() req: any) {
+  async login(@Req() req: any) {
     const user = req.user;
 
     const tokenRequest: TokenRequest = {
@@ -48,6 +48,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Registrar nuevo usuario' })
   @ApiResponse({ status: 201, description: 'Usuario registrado correctamente' })
   @Permissions(PermissionType.USER_CREATE, PermissionType.USER_ASSIGN_ROLE)
+  @UseGuards(JwtAuthGuard, PermissionGuard)
   @Post('/register')
   async register(@Body() registerRequest: RegisterRequest) {
     return await this.authService.register(registerRequest);

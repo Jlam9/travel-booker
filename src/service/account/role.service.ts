@@ -28,8 +28,8 @@ export class RoleService {
         search: `%${search.trim()}%`
       });
     }
-
-    qb.skip(page * size).take(size);
+    if (size > 0)
+      qb.skip(page * size).take(size);
 
     const [roles, total] = await qb.getManyAndCount();
 

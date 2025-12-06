@@ -108,7 +108,8 @@ export class BookingService {
       qb.andWhere("b.travelDate <= :to", { to: new Date(toDate) });
     }
 
-    qb.skip(page * size).take(size);
+    if (size > 0)
+      qb.skip(page * size).take(size);
 
     const [result, total] = await qb.getManyAndCount();
 

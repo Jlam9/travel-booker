@@ -28,13 +28,13 @@ export class RolesController {
 
   @Get()
   @Permissions(PermissionType.USER_VIEW)
-  @ApiOperation({ summary: 'Listado paginado de roles (ADMIN)' })
+  @ApiOperation({ summary: "Listado paginado de roles (ADMIN)" })
   @ApiResponse({
     status: 200,
-    type: Page<RoleResponse>,
-    description: 'Página de roles con filtros'
+    type: Page<RoleResponse>
   })
   async searchRoles(@Query() query: RoleSearchRequest) {
     return this.roleService.searchRoles(query);
   }
+
 }

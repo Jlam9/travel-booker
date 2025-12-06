@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { initializeTransactionalContext } from 'typeorm-transactional';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { Logger } from '@nestjs/common';
 
 function getSwaggerConfig() {
   return new DocumentBuilder()
@@ -12,15 +13,15 @@ function getSwaggerConfig() {
     .addBearerAuth()
     .build();
 }
+const logger = new Logger('RBACSeed');
+initializeTransactionalContext();
 
 async function bootstrap() {
-
-  initializeTransactionalContext();
 
   const app = await NestFactory.create(AppModule);
   app.enableCors();
   app.useGlobalInterceptors(new LoggingInterceptor()); // Logs estructurados
-  
+
   const document = SwaggerModule.createDocument(app, getSwaggerConfig());
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
@@ -28,6 +29,10 @@ async function bootstrap() {
     },
   });
 
-  await app.listen(process.env.PORT || 3005);
+  logger.log('NODE_ENV:', process.env.NODE_ENV);
+  logger.log('DB_PASSWORD:', process.env.DB_PASSWORD);
+
+
+  await app.listen(process.env.PORT || 3000);
 }
 bootstrap();

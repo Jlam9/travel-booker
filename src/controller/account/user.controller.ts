@@ -28,7 +28,7 @@ export class UserController {
 
 
   @ApiResponse({ status: 201, type: UserResponse })
-  @Post('/users')
+  @Post()
   @Permissions(PermissionType.USER_CREATE, PermissionType.USER_ASSIGN_ROLE)
   async createUser(@Body() dto: UserCreateRequest) {
     return this.userService.createUserInternal(dto);

@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { entities, getPgDbConfig } from './config/db/db.config';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 import { JwtModule } from '@nestjs/jwt';
+import { Controllers } from './config/module/controllers';
+import { Services } from './config/module/services';
 
 @Module({
   imports: [
@@ -15,10 +15,18 @@ import { JwtModule } from '@nestjs/jwt';
     ...typeOrmImports(),
   ],
   controllers: [
-
+    ...Controllers.AccountControllers,
+    ...Controllers.AuthControllers,
+    ...Controllers.BookingControllers,
+    ...Controllers.DestinationControllers,
+    ...Controllers.UtilControllers
   ],
   providers: [
-
+    ...Services.AccountServices,
+    ...Services.AuthServices,
+    ...Services.BookingServices,
+    ...Services.DestinationServices,
+    ...Services.UtilServices
   ],
   exports: [
   ],
@@ -69,6 +77,10 @@ function getDbConfigImports() {
   return dbConfigImports;
 }
 
-export function getEnvFile(): string {
-  return `environment/.env.${process.env.NODE_ENV}`;
+export function getEnvFile(): string | string[] {
+  const env = process.env.NODE_ENV ?? 'local-dev';
+  return [
+    `environment/.env.${env}`,
+    'environment/.env',
+  ];
 }

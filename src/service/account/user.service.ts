@@ -55,7 +55,8 @@ export class UserService {
       qb.andWhere('r.name = :role', { role: role.toUpperCase() });
     }
 
-    qb.skip(page * size).take(size);
+    if (size > 0)
+      qb.skip(page * size).take(size);
 
     const [users, total] = await qb.getManyAndCount();
 
@@ -68,7 +69,6 @@ export class UserService {
 
     return createPage(userList, page, size, total);
   }
-
 
   async createUserInternal(data: UserCreateRequest) {
 
@@ -202,8 +202,6 @@ export class UserService {
     });
   }
 
-
-
   async createUser(request: RegisterRequest) {
     const user = this.userRepository.create({
       email: request.email.toLowerCase().trim(),
@@ -254,7 +252,5 @@ export class UserService {
       excludeExtraneousValues: true,
     });
   }
-
-
 
 }

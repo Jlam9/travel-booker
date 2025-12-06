@@ -8,10 +8,17 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
+    "seed:rbac": "ts-node -r tsconfig-paths/register src/seed/run-seed.ts",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate src/migrations/migration -d typeorm.config.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d typeorm.config.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d typeorm.config.ts",
+    "start": "set NODE_ENV=local-dev && nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "start:local-dev": "set NODE_ENV=local-dev && nest start --entryFile main",
+    "start:local-dev-debug-nodemon": "set NODE_ENV=local-dev && nodemon --config nodemon-debug.json",
+    "start:dev-debug-nodemon": "set NODE_ENV=dev && nodemon --config nodemon-debug.json",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -69,22 +76,5 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }
