@@ -7,6 +7,7 @@ import { addTransactionalDataSource } from 'typeorm-transactional';
 import { JwtModule } from '@nestjs/jwt';
 import { Controllers } from './config/module/controllers';
 import { Services } from './config/module/services';
+import { SecurityConstants } from './common/strategy/security.constants.';
 
 @Module({
   imports: [
@@ -51,7 +52,7 @@ export function typeOrmImports() {
 export function jwtImports() {
   return [
     JwtModule.register({
-      secret: process.env.JWT_SECRET,
+      secret: SecurityConstants.JwtSecret, //secretOrKey: process.env.JWT_SECRET,
       signOptions: { expiresIn: '60s' }
     })
   ];

@@ -36,7 +36,7 @@ Puesta en marcha
 2) Base de datos  
 - Crear la base de datos indicada en `DB_DATABASE` y el usuario con permisos.  
 - Migraciones: el proyecto actualmente usa `DB_SYNCHRONIZE=true` en dev, por lo que el esquema se genera automáticamente sin migraciones. Para producción se recomienda poner `DB_SYNCHRONIZE=false` y crear migraciones, pero no están configuradas aún (los scripts de `package.json` requieren un `typeorm.config.ts` que hoy no existe).
-- Seeds RBAC: se ejecutan automaticamente al iniciar la app (idempotente). Para correrlos manualmente: `npm run seed:rbac`.
+- Seeds iniciales de roles/usuarios/permisos (RBAC): `npm run seed:rbac`.
 
 3) Levantar en desarrollo  
 - `npm run start:dev` (watch).  
@@ -77,7 +77,7 @@ Roles y permisos (RBAC)
 -----------------------
 - Entidades: `Role`, `Permission`, `RolePermission`, `UserRole` y `PermissionType` (enum central).  
 - `PermissionGuard` usa un decorator (`@Permissions`) para extraer permisos requeridos y compararlos con los permisos agregados de los roles del usuario. Responde con `MessageCodes` claros en caso de falta de permisos.
-- Seed RBAC (se corre al iniciar la app o con `npm run seed:rbac`): crea roles ADMIN/AGENT/VIEWER, todos los permisos, y usuarios admin/agent/viewer con password `password123`. Cambia credenciales despues de probar.
+- Seed `npm run seed:rbac` crea: roles ADMIN/AGENT/VIEWER, todos los permisos, y usuarios admin/agent/viewer con password `password123`. Cambia credenciales despues de probar.
 
 Paginacion y filtros
 --------------------
@@ -120,4 +120,5 @@ Pruebas
 -------
 - Jest configurado; prueba unitaria incluida para `AuthService` (`test/auth/auth.service.spec.ts`) cubre emision de JWT y error cuando el usuario no existe.
 - Ejecutar con `npm test`, `npm run test:watch` o `npm run test:cov`.
+
 

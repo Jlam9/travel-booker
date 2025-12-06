@@ -1,4 +1,4 @@
-import { DataSource } from 'typeorm';
+import { DataSource, In } from 'typeorm';
 import { Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
@@ -33,8 +33,21 @@ export async function seedRBAC(dataSource: DataSource) {
       description: `Permiso: ${p}`,
     }));
 
-    const permissions = await permissionRepo.save(permissionsToSeed);
-    logger.log(`Permisos creados: ${permissions.length}`);
+    const existingPermissions = await permissionRepo.find({
+      where: { name: In(permissionsToSeed.map(p => p.name)) },
+    });
+    const permissionsToCreate = permissionsToSeed.filter(
+      p => !existingPermissions.some(ep => ep.name === p.name),
+    );
+
+    const createdPermissions = permissionsToCreate.length
+      ? await permissionRepo.save(permissionsToCreate)
+      : [];
+    const permissions = [...existingPermissions, ...createdPermissions];
+
+    logger.log(
+      `Permisos listos: ${permissions.length} (creados ${createdPermissions.length})`,
+    );
 
     const findPermission = (name: PermissionType) =>
       permissions.find(p => p.name === name);
@@ -44,11 +57,21 @@ export async function seedRBAC(dataSource: DataSource) {
     // ============================================================
     logger.log('Creando roles...');
 
-    const roles = await roleRepo.save([
+    const rolesToSeed = [
       { name: 'ADMIN', description: 'Acceso total al sistema' },
-      { name: 'AGENT', description: 'Gestión de reservas y destinos' },
+      { name: 'AGENT', description: 'Gestion de reservas y destinos' },
       { name: 'VIEWER', description: 'Solo lectura' },
-    ]);
+    ];
+    const existingRoles = await roleRepo.find({
+      where: { name: In(rolesToSeed.map(r => r.name)) },
+    });
+    const rolesToCreate = rolesToSeed.filter(
+      r => !existingRoles.some(er => er.name === r.name),
+    );
+    const createdRoles = rolesToCreate.length
+      ? await roleRepo.save(rolesToCreate)
+      : [];
+    const roles = [...existingRoles, ...createdRoles];
 
     const ADMIN = roles.find(r => r.name === 'ADMIN');
     const AGENT = roles.find(r => r.name === 'AGENT');
@@ -58,20 +81,20 @@ export async function seedRBAC(dataSource: DataSource) {
       throw new Error('No se pudieron cargar correctamente los roles.');
     }
 
-    logger.log(`Roles creados: ${roles.length}`);
+    logger.log(
+      `Roles listos: ${roles.length} (creados ${createdRoles.length})`,
+    );
 
     // ============================================================
-    // 3. ASIGNACIÓN DE PERMISOS A ROLES
+    // 3. ASIGNACION DE PERMISOS A ROLES
     // ============================================================
     logger.log('Asignando permisos a los roles...');
 
-    // ADMIN → todos los permisos
     const adminPermissions = permissions.map(p => ({
       role: ADMIN,
       permission: p,
     }));
 
-    // AGENT → permisos específicos
     const agentPermList: PermissionType[] = [
       PermissionType.BOOKING_VIEW,
       PermissionType.BOOKING_CREATE,
@@ -87,7 +110,6 @@ export async function seedRBAC(dataSource: DataSource) {
       permission: findPermission(p),
     }));
 
-    // VIEWER → solo lectura
     const viewerPermList: PermissionType[] = [
       PermissionType.BOOKING_VIEW,
       PermissionType.DESTINATION_VIEW,
@@ -104,11 +126,30 @@ export async function seedRBAC(dataSource: DataSource) {
       ...viewerPermissions,
     ];
 
-    await rolePermissionRepo.save(allRolePermissions);
-    logger.log(`Permisos asignados: ${allRolePermissions.length}`);
+    let createdRolePermissions = 0;
+    for (const rp of allRolePermissions) {
+      if (!rp.permission) {
+        continue;
+      }
+
+      const exists = await rolePermissionRepo.findOne({
+        where: {
+          role: { id: rp.role.id },
+          permission: { id: rp.permission.id },
+        },
+      });
+
+      if (!exists) {
+        await rolePermissionRepo.save(rp);
+        createdRolePermissions += 1;
+      }
+    }
+    logger.log(
+      `Permisos asignados: ${allRolePermissions.length} (nuevos ${createdRolePermissions})`,
+    );
 
     // ============================================================
-    // 4. CREACIÓN DE USUARIOS BASE
+    // 4. CREACION DE USUARIOS BASE
     // ============================================================
     logger.log('Creando usuario admin, agent y viewer...');
 
@@ -146,7 +187,7 @@ export async function seedRBAC(dataSource: DataSource) {
 
         logger.log(`Usuario creado: ${u.email}`);
       } else {
-        logger.log(`Usuario ya existía: ${u.email}`);
+        logger.log(`Usuario ya existia: ${u.email}`);
       }
 
       const existsRole = await userRoleRepo.findOne({
@@ -162,7 +203,7 @@ export async function seedRBAC(dataSource: DataSource) {
       }
     }
 
-    logger.log('Seed RBAC completado exitosamente ✔');
+    logger.log('Seed RBAC completado exitosamente');
   } catch (error) {
     logger.error('Error durante seed RBAC:', error);
     throw error;

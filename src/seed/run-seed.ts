@@ -15,14 +15,14 @@ async function run() {
 
   const dataSource = app.get(DataSource);
 
-  console.log('🚀 Ejecutando seed RBAC...');
+  console.log('Ejecutando seed RBAC...');
   await seedRBAC(dataSource);
 
   await app.close();
-  console.log('✔ Seed completado y aplicación cerrada.');
+  console.log('Seed completado y aplicacion cerrada.');
 }
 
 run().catch(err => {
-  console.error('❌ Error ejecutando seed:', err);
+  console.error('Error ejecutando seed:', err);
   process.exit(1);
 });
