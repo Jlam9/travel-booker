@@ -37,7 +37,7 @@ export class AppModule { }
 export function configImports() {
   return [
     ConfigModule.forRoot({
-      envFilePath: getEnvFile(),
+      envFilePath: getEnvFiles(),
     }),
   ];
 }
@@ -78,10 +78,10 @@ function getDbConfigImports() {
   return dbConfigImports;
 }
 
-export function getEnvFile(): string | string[] {
-  const env = process.env.NODE_ENV ?? 'local-dev';
-  return [
-    `environment/.env.${env}`,
-    'environment/.env',
-  ];
+export function getEnvFiles(): string[] {
+  const envFiles = ['environment/.env'];
+  if (process.env.NODE_ENV) {
+    envFiles.unshift(`environment/.env.${process.env.NODE_ENV}`);
+  }
+  return envFiles;
 }

@@ -10,19 +10,22 @@ Requisitos previos
 
 Variables de entorno
 --------------------
-Los valores se cargan con `@nestjs/config` usando `NODE_ENV` para resolver el archivo: `environment/.env.<NODE_ENV>` y `environment/.env`. Ejemplo rapido (`environment/.env.local-dev` incluido):
-
-```
-DB_HOST=localhost
-DB_PORT=5432
-DB_DATABASE=travel_booker_dev
-DB_SCHEMA=travel_booker_dev
-DB_USER=postgres
-DB_PASSWORD=root
-DB_SYNCHRONIZE=true   # dev: crea/actualiza esquema; prod: false + migraciones
-DB_LOGGING=false
-PORT=3000             # opcional; por defecto 3000
-```
+- Copia `environment/.env.example` a `environment/.env` y ajusta los valores para tu entorno local/CI.
+- Si seteas `NODE_ENV`, se intentará cargar también `environment/.env.<NODE_ENV>` antes de `environment/.env` (sirve para separar prod/stage/dev). Si no existe, se usa solo `.env`.
+- Sample incluido (`environment/.env.example`):
+  ```
+  DB_HOST=localhost
+  DB_PORT=5432
+  DB_DATABASE=travel_booker
+  DB_SCHEMA=public
+  DB_USER=postgres
+  DB_PASSWORD=postgres
+  DB_SYNCHRONIZE=true   # dev: true; prod: false + migraciones
+  DB_LOGGING=false
+  JWT_SECRET=replace_me_with_a_secret_key
+  JWT_EXPIRES=60s
+  PORT=3000             # opcional; por defecto 3000
+  ```
 
 JWT
 ---
@@ -39,10 +42,10 @@ Puesta en marcha
 - Seeds RBAC: se ejecutan automaticamente al iniciar la app (idempotente). Para correrlos manualmente: `npm run seed:rbac`.
 
 3) Levantar en desarrollo  
-- `npm run start:dev` (watch).  
-- Alternativas: `npm run start` (establece NODE_ENV=local-dev) o `npm run start:local-dev`.  
+- `npm run start` (NestJS).  
+- `npm run start:debug` (nodemon + inspeccion).  
 - Swagger UI disponible en `http://localhost:3000/docs` con auth Bearer.
-- Logs estructurados: el `LoggingInterceptor` imprime en consola las peticiones y respuestas (con método, ruta, estado y tiempo), útiles para observar el tráfico durante el desarrollo.
+- Logs estructurados: el `LoggingInterceptor` imprime en consola las peticiones y respuestas (con metodo, ruta, estado y tiempo), utiles para observar el trafico durante el desarrollo.
 
 4) Pruebas  
 - Unitarias: `npm test` o `npm run test:watch`.  
@@ -55,7 +58,7 @@ Docker (opcional)
   docker compose up --build
   ```
 - La API queda en `http://localhost:3000` y Postgres en `localhost:5432`.
-- Usa `environment/.env.local-dev` y fuerza `DB_HOST=db` dentro del compose (ajusta si cambias el env file).
+- Usa el archivo `environment/.env` que crees a partir del ejemplo y fuerza `DB_HOST=db` dentro del compose (ajusta si cambias el env file).
 
 Arquitectura
 ------------
