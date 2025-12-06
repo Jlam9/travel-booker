@@ -1,98 +1,111 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+Travel Booker API
+=================
+API REST en NestJS para gestionar destinos y reservas con autenticacion JWT, control de roles/permisos y paginacion en los listados.
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Requisitos previos
+------------------
+- Node.js >= 18 y npm.
+- PostgreSQL 14+ con una base de datos creada (ver variables de entorno).
+- Git (opcional) y Postman/Insomnia para probar endpoints.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Variables de entorno
+--------------------
+Los valores se cargan con `@nestjs/config` usando `NODE_ENV` para resolver el archivo: `environment/.env.<NODE_ENV>` y `environment/.env`. Ejemplo rapido (`environment/.env.local-dev` incluido):
 
-## Description
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_DATABASE=travel_booker_dev
+DB_SCHEMA=travel_booker_dev
+DB_USER=postgres
+DB_PASSWORD=root
+DB_SYNCHRONIZE=true   # dev: crea/actualiza esquema; prod: false + migraciones
+DB_LOGGING=false
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ npm install
+JWT_SECRET=super_clave_ultra_secreta_2025
+JWT_EXPIRES=60s
+PORT=3000             # opcional; por defecto 3000
 ```
 
-## Compile and run the project
+Puesta en marcha
+----------------
+1) Instalar dependencias  
+`npm install`
 
-```bash
-# development
-$ npm run start
+2) Base de datos  
+- Crear la base de datos indicada en `DB_DATABASE` y el usuario con permisos.  
+- Migraciones: el proyecto actualmente usa `DB_SYNCHRONIZE=true` en dev, por lo que el esquema se genera automáticamente sin migraciones. Para producción se recomienda poner `DB_SYNCHRONIZE=false` y crear migraciones, pero no están configuradas aún (los scripts de `package.json` requieren un `typeorm.config.ts` que hoy no existe).
+- Seeds iniciales de roles/usuarios/permisos (RBAC): `npm run seed:rbac`.
 
-# watch mode
-$ npm run start:dev
+3) Levantar en desarrollo  
+- `npm run start:dev` (watch).  
+- Alternativas: `npm run start` (establece NODE_ENV=local-dev) o `npm run start:local-dev`.  
+- Swagger UI disponible en `http://localhost:3000/docs` con auth Bearer.
+- Logs estructurados: el `LoggingInterceptor` imprime en consola las peticiones y respuestas (con método, ruta, estado y tiempo), útiles para observar el tráfico durante el desarrollo.
 
-# production mode
-$ npm run start:prod
-```
+4) Pruebas  
+- Unitarias: `npm test` o `npm run test:watch`.  
 
-## Run tests
+Arquitectura
+------------
+- Capas: `controller` (HTTP y validacion basica), `service` (reglas de negocio), `dto` (entradas/salidas tipadas), `model` (entities TypeORM) y `common` (decorators, guards, interceptores).
+- Modulos: agrupados via `src/config/module/*.ts` para registrar controllers y providers por dominio (account, auth, booking, destination, util).
+- Datos: TypeORM + `SnakeNamingStrategy` para columnas snake_case y `typeorm-transactional` para manejar contexto transaccional cuando se necesite.
+- Documentacion: Swagger se monta en `/docs`. `LoggingInterceptor` centraliza logs de peticiones/respuestas.
+- DTOs: serializacion con `class-transformer` (`excludeExtraneousValues`) para exponer solo campos esperados.
 
-```bash
-# unit tests
-$ npm run test
+Autenticacion
+-------------
+- Login via `LocalStrategy` (`/auth/login`): valida email/password con bcrypt contra `User.passwordHash`.
+- Tokens JWT firmados con `JWT_SECRET`, duracion de acceso 8h y refresh 30 dias (`AuthService`).  
+- `JwtStrategy` lee el Bearer token y rellena `request.user`.  
+- Refresh token en `/auth/refresh-token` vuelve a emitir access token si el refresh es valido.
+- Registro (`/auth/register`) protegido con permisos `USER_CREATE` y `USER_ASSIGN_ROLE`; si no se especifican roles, asigna VIEWER por defecto.
 
-# e2e tests
-$ npm run test:e2e
+Roles y permisos (RBAC)
+-----------------------
+- Entidades: `Role`, `Permission`, `RolePermission`, `UserRole` y `PermissionType` (enum central).  
+- `PermissionGuard` usa un decorator (`@Permissions`) para extraer permisos requeridos y compararlos con los permisos agregados de los roles del usuario. Responde con `MessageCodes` claros en caso de falta de permisos.
+- Seed `npm run seed:rbac` crea: roles ADMIN/AGENT/VIEWER, todos los permisos, y usuarios admin/agent/viewer con password `password123`. Cambia credenciales despues de probar.
 
-# test coverage
-$ npm run test:cov
-```
+Paginacion y filtros
+--------------------
+- Util `createPage` en `src/dto/common/page.ts` devuelve metadata (`totalElements`, `totalPages`, `first/last`, etc.). La numeracion de paginas es base 0 (`page=0` es la primera).
+- Destinos: filtros por `country` y `city` con `ILIKE`, estado `isActive`, orden por `id DESC`.
+- Bookings: filtros por `status`, `destinationId`, y rango de fechas (`fromDate`/`toDate`); incluye joins a destino y usuario creador.
+- Usuarios/Roles: busqueda parcial por nombre/email, estado y rol; roles por nombre parcial.
 
-## Deployment
+Decisiones de diseno
+--------------------
+- NestJS modular con inyeccion de dependencias para aislar dominios (account/auth/booking/destination/util) y facilitar pruebas unitarias.
+- TypeORM con `SnakeNamingStrategy` para alinear la base con convenciones SQL y mantener DTOs desacoplados de nombres de columnas.
+- Hash de contrasenas con `bcryptjs` y tokens JWT cortos para acceso + refresh largo; expiraciones parametrizables via env.
+- RBAC basado en permisos finos (no solo roles) para granularidad; guard y decorator custom para minimizar logica repetida en controllers.
+- DTOs serializados con `class-transformer` para evitar fugas de campos sensibles y mantener contratos de API consistentes.
+- Validaciones y errores centralizados con `CustomError` + `MessageCodes` para mensajes internos trazables.
+- CORS habilitado y Swagger incorporado para acelerar pruebas/manual QA.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Rutas utiles
+------------
+- Salud/metricas: `GET /health`, `GET /metrics`.
+- Auth: `POST /auth/login`, `POST /auth/register`, `POST /auth/refresh`.
+- Destinos: CRUD con permisos de destino; delete hace soft-delete marcando `isActive=false` si no hay bookings activos.
+- Bookings: CRUD con validaciones de destino activo y estado de reserva; elimina hard-delete.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Endpoints y permisos clave
+--------------------------
+- Usuarios: `GET /users` (ADMIN), `POST /users` (ADMIN), `PATCH /users/:id` (ADMIN), `PATCH /users/:id/roles` (ADMIN).
+- Roles: `GET /roles` (ADMIN).
+- Destinos: `POST /destinations` (ADMIN o AGENT), `GET /destinations` (cualquier autenticado), `GET /destinations/:id`, `PATCH /destinations/:id` (ADMIN o AGENT), `DELETE /destinations/:id` (ADMIN) con soft-delete y bloqueo si hay bookings activos.
+- Bookings: `POST /bookings` (ADMIN o AGENT), `GET /bookings` (cualquier autenticado), `GET /bookings/:id`, `PATCH /bookings/:id` (ADMIN o AGENT para cambiar estado), `DELETE /bookings/:id` (ADMIN).
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+Observabilidad
+--------------
+- Logs estructurados en consola via `LoggingInterceptor` (metodo, ruta, estado HTTP, duracion).
+- `GET /health` verifica disponibilidad de la aplicacion y la base de datos.
+- `GET /metrics` devuelve contadores de usuarios/destinos/bookings, estados de reservas, uso de memoria, uptime y estado del DB (ping).
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Pruebas
+-------
+- Jest configurado; prueba unitaria incluida para `AuthService` (`test/auth/auth.service.spec.ts`) cubre emision de JWT y error cuando el usuario no existe.
+- Ejecutar con `npm test`, `npm run test:watch` o `npm run test:cov`.

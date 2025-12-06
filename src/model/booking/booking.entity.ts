@@ -1,4 +1,3 @@
-// src/models/booking/booking.entity.ts
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import BaseDataEntity from '../common/base-data.entity';
 import { User } from '../account/user.entity';
