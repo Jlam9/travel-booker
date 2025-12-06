@@ -20,10 +20,10 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
   app.enableCors();
-  app.useGlobalInterceptors(new LoggingInterceptor()); // Logs estructurados
+  app.useGlobalInterceptors(new LoggingInterceptor()); 
 
   const document = SwaggerModule.createDocument(app, getSwaggerConfig());
-  SwaggerModule.setup('api', app, document, {
+  SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {
       docExpansion: 'none',
     },
