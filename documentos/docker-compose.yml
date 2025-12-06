@@ -28,7 +28,7 @@ services:
       db:
         condition: service_healthy
     env_file:
-      - ../environment/.env.local-dev
+      - ../environment/.env
     environment:
       DB_HOST: db
       DB_USER: postgres
