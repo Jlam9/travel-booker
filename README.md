@@ -58,7 +58,8 @@ Docker (opcional)
   docker compose up --build
   ```
 - La API queda en `http://localhost:3000` y Postgres en `localhost:5432`.
-- Usa el archivo `environment/.env` que crees a partir del ejemplo y fuerza `DB_HOST=db` dentro del compose (ajusta si cambias el env file).
+- Usa el archivo `environment/.env` que crees a partir del ejemplo y fuerza `DB_HOST=db` dentro del compose. Si cambias el env file, actualiza la ruta en `env_file:` del servicio `api` (ejemplo actual: `../environment/.env`); si no apuntas al archivo correcto, la API fallara al levantar.
+- Para cambiar el entorno cargado, edita `documentos/docker-compose.yml` en el servicio `api`: ajusta `NODE_ENV` y la ruta del `env_file` al archivo que quieras usar en `environment/`.
 
 Arquitectura
 ------------
