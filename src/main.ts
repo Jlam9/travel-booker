@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { initializeTransactionalContext } from 'typeorm-transactional';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 function getSwaggerConfig() {
   return new DocumentBuilder()
@@ -18,7 +19,8 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
   app.enableCors();
-
+  app.useGlobalInterceptors(new LoggingInterceptor()); // Logs estructurados
+  
   const document = SwaggerModule.createDocument(app, getSwaggerConfig());
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {

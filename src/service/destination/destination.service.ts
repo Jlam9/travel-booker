@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Not, Repository } from "typeorm";
 import { Destination } from "src/model/destination/destination.entity";
 import { plainToInstance } from "class-transformer";
 import { CustomError } from "src/config/exception/custom.error";
@@ -146,10 +146,11 @@ export class DestinationService {
       throw new CustomError(MessageCodes.DestinationNotFound, { id });
     }
 
+    // Tomamos "Bookings Activos" como todos aquellos que no esten cancelados
     const activeBookings = await this.bookingRepo.count({
       where: {
         destination: { id },
-        status: BookingStatusType.Confirmed
+        status: Not(BookingStatusType.Cancelled)
       }
     });
 
@@ -157,6 +158,7 @@ export class DestinationService {
       throw new CustomError(MessageCodes.DestinationHasActiveBookings, { id });
     }
 
+    // Soft delete
     destination.isActive = false;
 
     const updated = await this.destinationRepo.save(destination);

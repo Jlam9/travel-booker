@@ -73,7 +73,37 @@ export const MessageCodes = {
     status: 400
   },
 
+  DestinationInactive: {
+    message: "Destination {id} is inactive and cannot be used",
+    code: "DESTINATION_INACTIVE",
+    status: 400
+  },
+
+  DestinationAlreadyInactive: {
+    message: "Destination {id} is already inactive",
+    code: "DESTINATION_ALREADY_INACTIVE",
+    status: 400
+  },
+
+  // Booking
+  BookingNotFound: {
+    message: "Booking {id} was not found",
+    code: "BOOKING_NOT_FOUND",
+    status: 404
+  },
+
+  InvalidBookingStatus: {
+    message: "Booking status '{status}' is not valid",
+    code: 'INVALID_BOOKING_STATUS',
+    status: 400
+  },
+
   // Generic
+  DatabaseConnectionError: {
+    message: "Database connection failed: {details}",
+    code: "DATABASE_CONNECTION_ERROR",
+    status: 500
+  },
   UnexpectedError: {
     message: 'Unexpected error from server',
     code: 'UNEXPECTED_ERROR',
