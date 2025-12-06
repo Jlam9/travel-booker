@@ -27,6 +27,13 @@ Variables de entorno
   PORT=3000             # opcional; por defecto 3000
   ```
 
+Documentacion de la API
+-----------------------
+- Swagger UI: `http://localhost:3000/docs` (ajusta el puerto si cambias `PORT` o si usas Docker). Usa el boton "Authorize" y pega el Bearer token (`accessToken`) obtenido desde `/auth/login`.
+- Coleccion Postman: `documentos/Travel Booker.postman_collection.json`. Importala en Postman/Insomnia; las URLs apuntan a `localhost:3000`, asi que actualiza host/puerto segun tu entorno local o el mapeo del `docker-compose`.
+- Credenciales seed para probar rapido (se crean al levantar la app o al correr `npm run seed:rbac`): `admin@example.com`, `agent@example.com`, `viewer@example.com` (todas con clave `password123`).
+- Flujo sugerido: 1) haz login para obtener tokens, 2) pega el `accessToken` en Swagger/Postman, 3) consume los endpoints protegidos segun el rol.
+
 JWT
 ---
 - Se firma/valida con la constante `SecurityConstants.JwtSecret` (`src/common/strategy/security.constants..ts`).
