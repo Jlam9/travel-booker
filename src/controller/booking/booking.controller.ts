@@ -15,8 +15,7 @@ import {
 
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
-import { PermissionGuard } from "src/guards/permission.guard";
-import { Permissions } from "src/decorators/permission.decorator";
+import { Permissions } from "src/common/decorators/permission.decorator";
 
 import { BookingService } from "src/service/booking/booking.service";
 
@@ -25,11 +24,12 @@ import { BookingResponse } from "src/dto/booking/booking-response.dto";
 
 import { PermissionType } from "src/type/account/permission.type";
 import { CustomErrorFilter } from "src/config/exception/customer-error.filter";
-import { JwtAuthGuard } from "src/guards/jwt-auth.guard";
 import { BookingCreateRequest } from "src/dto/booking/booking-create-request.dto";
 import { Page } from "src/dto/common/page";
 import { BookingUpdateRequest } from "src/dto/booking/booking-update-request.dto";
 import { BookingSearchRequest } from "src/dto/booking/booking-search-request.dto";
+import { JwtAuthGuard } from "src/common/guards/jwt-auth.guard";
+import { PermissionGuard } from "src/common/guards/permission.guard";
 
 @ApiTags("Bookings")
 @UseGuards(JwtAuthGuard, PermissionGuard)

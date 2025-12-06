@@ -14,18 +14,18 @@ import {
 
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-import { PermissionGuard } from 'src/guards/permission.guard';
 import { PermissionType } from 'src/type/account/permission.type';
 
 import { CustomErrorFilter } from 'src/config/exception/customer-error.filter';
 import { DestinationService } from 'src/service/destination/destination.service';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
-import { Permissions, PublicPermissions } from 'src/decorators/permission.decorator';
+import { Permissions, PublicPermissions } from 'src/common/decorators/permission.decorator';
 import { DestinationResponse } from 'src/dto/destination/destination-response.dto';
 import { DestinationCreateRequest } from 'src/dto/destination/destination-create-request.dto';
 import { Page } from 'src/dto/common/page';
 import { DestinationSearchRequest } from 'src/dto/destination/destination-search-request-dto';
 import { DestinationUpdateRequest } from 'src/dto/destination/destination-update-request.dto';
+import { PermissionGuard } from 'src/common/guards/permission.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 @ApiTags("Destinations")
 @UseGuards(JwtAuthGuard, PermissionGuard)

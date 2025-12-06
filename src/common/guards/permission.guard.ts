@@ -2,7 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@
 import { Reflector } from '@nestjs/core';
 import { CustomError } from 'src/config/exception/custom.error';
 import { MessageCodes } from 'src/config/exception/internal-message-code';
-import { PERMISSIONS_KEY } from 'src/decorators/permission.decorator';
+import { PERMISSIONS_KEY } from 'src/common/decorators/permission.decorator';
 import { UserService } from 'src/service/account/user.service';
 import { PermissionType } from 'src/type/account/permission.type';
 

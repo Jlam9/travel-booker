@@ -8,14 +8,14 @@ import {
 
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CustomErrorFilter } from 'src/config/exception/customer-error.filter';
-import { Permissions } from 'src/decorators/permission.decorator';
+import { Permissions } from 'src/common/decorators/permission.decorator';
 import { Page } from 'src/dto/common/page';
 import { RoleResponse } from 'src/dto/role/role-response.dto';
 import { RoleSearchRequest } from 'src/dto/role/role-search-request.dto';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
-import { PermissionGuard } from 'src/guards/permission.guard';
 import { RoleService } from 'src/service/account/role.service';
 import { PermissionType } from 'src/type/account/permission.type';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { PermissionGuard } from 'src/common/guards/permission.guard';
 
 
 @ApiTags('Roles')

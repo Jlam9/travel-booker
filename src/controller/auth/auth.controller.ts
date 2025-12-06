@@ -14,11 +14,11 @@ import { TokenRequest } from 'src/dto/auth/token-request.dto';
 import { RegisterRequest } from 'src/dto/auth/register-request.dto';
 
 import { AuthService } from 'src/service/auth/auth.service';
-import { LocalAuthGuard } from 'src/service/auth/local-auth.guard';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
-import { PermissionGuard } from 'src/guards/permission.guard';
+import { LocalAuthGuard } from 'src/common/guards/local-auth.guard';
 import { PermissionType } from 'src/type/account/permission.type';
-import { Permissions } from 'src/decorators/permission.decorator';
+import { Permissions } from 'src/common/decorators/permission.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { PermissionGuard } from 'src/common/guards/permission.guard';
 
 @ApiTags('AuthController')
 @UseGuards(JwtAuthGuard, PermissionGuard)
