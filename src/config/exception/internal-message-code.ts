@@ -92,6 +92,12 @@ export const MessageCodes = {
     status: 404
   },
 
+  BookingInvalidDate: {
+    message: "Booking invalid date",
+    code: "BOOKING_INVALID_DATE",
+    status: 404
+  },
+
   InvalidBookingStatus: {
     message: "Booking status '{status}' is not valid",
     code: 'INVALID_BOOKING_STATUS',

@@ -65,6 +65,11 @@ export class BookingService {
       status: BookingStatusType.Pending
     });
 
+    const actualDate = new Date();
+    if (actualDate.getTime() > booking.travelDate.getTime()) {
+      throw new CustomError(MessageCodes.BookingInvalidDate)
+    }
+
     const saved = await this.bookingRepo.save(booking);
 
     const flattened = {
